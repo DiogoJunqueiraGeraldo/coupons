@@ -1,21 +1,34 @@
 # Coupon Management API
 
+# Setup database
+
+```sh
+docker exec -it postgres bash
+psql -U user
+\l 
+CREATE DATABASE coupons;
+\l
+# Execute Spring Application
+\c coupons
+\d
+```
+
 # Definition
 
 ## Campaign Table
 
-| Field          | Type                                                    | Required | Description                                     |
-|----------------|---------------------------------------------------------|----------|-------------------------------------------------|
-| id             | uuid                                                    | true     |                                                 |
-| name           | varchar(200)                                            | true     |                                                 |
-| description    | text                                                    | false    |                                                 |
-| expiresAt      | timestamp                                               | false    |                                                 |
-| startsAt       | timestamp                                               | true     | default now                                     |
-| active         | bool                                                    | true     | don't override the expiresAt and startsAt logic |
-| cumulative     | bool                                                    | true     |                                                 |
-| style          | [Campaign Style Enum](#campaignstyle-enum)              | true     |                                                 |
-| campaignRuleId | uuid - Foreign Key [Campaign Rule](#campaignrule-table) | false    | required if campaign style is UniqueUsage       |
-| createdAt      | timestamp                                               | true     |                                                 |
+| Field        | Type                                                    | Required | Description                                     |
+|--------------|---------------------------------------------------------|----------|-------------------------------------------------|
+| id           | uuid                                                    | true     |                                                 |
+| name         | varchar(200)                                            | true     |                                                 |
+| description  | varchar(500)                                            | false    |                                                 |
+| expiresAt    | timestamp                                               | false    |                                                 |
+| startsAt     | timestamp                                               | true     | default now                                     |
+| active       | bool                                                    | true     | don't override the expiresAt and startsAt logic |
+| cumulative   | bool                                                    | true     |                                                 |
+| style        | [Campaign Style Enum](#campaignstyle-enum)              | true     |                                                 |
+| campaignRule | uuid - Foreign Key [Campaign Rule](#campaignrule-table) | false    | required if campaign style is UniqueUsage       |
+| createdAt    | timestamp                                               | true     |                                                 |
 
 
 ### CampaignStyle Enum
@@ -30,11 +43,11 @@
 | Field     | Type                                     | Required | Description |
 |-----------|------------------------------------------|----------|-------------|
 | id        | uuid                                     | true     |             |
-| lifetime  | Number                                   | false    | In Seconds  |
+| lifetime  | int                                      | false    | In Seconds  |
 | type      | [Discount Type Enum](#discounttype-enum) | true     |             |
-| value     | Number                                   | true     |             |
-| prefix    | String                                   | true     |             |
-| maxUsages | Number                                   | false    |             |
+| value     | Decimal                                  | true     |             |
+| prefix    | varchar(6)                               | true     |             |
+| maxUsages | int                                      | false    |             |
 
 ### DiscountType Enum
 
@@ -52,12 +65,13 @@
 | campaign  | uuid - Foreign Key [Campaign](#campaign-table) | true     |
 | code      | String                                         | true     |
 | active    | Boolean                                        | true     |
-| priority  | Number                                         | true     |
-| expiresAt | Date                                           | true     |
+| priority  | int                                            | true     |
+| expiresAt | Timestamp                                      | true     |
 | type      | [Discount Type Enum](#discounttype-enum)       | true     |
-| amount    | Number                                         | true     |
-| maxUsages | Number                                         | false    |
-| createdAt | Date                                           | true     |
+| value     | decimal                                        | true     |
+| maxUsages | decimal                                        | false    |
+| createdAt | Timestamp                                      | true     |
+| updatedAt | Timestamp                                      | true     |
 
 ## Sale Table
 
@@ -66,12 +80,13 @@
 | id         | uuid        | true     |                                 |
 | externalId | varchar(50) | true     |                                 |
 | origin     | varchar(50) | true     | Sale Origin                     |
-| total      | money       | true     | Original Value                  |
-| discounts  | money       | true     | Total Discount                  |
-| sellValue  | money       | true     | Original Value - Total Discount |
+| total      | decimal     | true     | Original Value                  |
+| discounts  | decimal     | true     | Total Discount                  |
+| sellValue  | decimal     | true     | Original Value - Total Discount |
 | createdAt  | timestamp   | true     |                                 |
+| updatedAt  | timestamp   | true     |                                 |
 
-## BlockList Table
+## SaleBlocker Table
 
 | Field      | Type                                                    | Required | Description |
 |------------|---------------------------------------------------------|----------|-------------|
@@ -84,5 +99,5 @@
 
 | Type       | Description                              |
 |------------|------------------------------------------|
-| externalId | won't allow sale based on external id    |
-| origin     | won't allow sale based on sales's origin |
+| ExternalId | won't allow sale based on external id    |
+| Origin     | won't allow sale based on sales's origin |
